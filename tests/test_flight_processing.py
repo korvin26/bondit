@@ -1,5 +1,7 @@
 import pytest
 from app.core.flight_processing import FlightDataProcessor
+from app.models.flight import FlightData
+from tests.testutils import convert_to_flight_data_model
 
 
 @pytest.fixture(autouse=True)
@@ -7,14 +9,16 @@ def run_around_tests():
     FlightDataProcessor().reset()
     yield
 
+
 def test_process_flight_data():
     flight_data = [
         {"flight ID": "A12", "Arrival": "09:00", "Departure": "13:00", "success": ""},
         {"flight ID": "A14", "Arrival": "12:00", "Departure": "19:00", "success": ""},
         {"flight ID": "B15", "Arrival": "10:00", "Departure": "13:00", "success": ""},
     ]
+    
     flight_processor = FlightDataProcessor()
-    flight_processor.process_flight_data(flight_data)
+    flight_processor.process_flight_data(convert_to_flight_data_model(flight_data))
     assert flight_processor.flight_list.head.flight_id == "A12"
     assert flight_processor.flight_dict["A12"].success == "success"
 
@@ -27,7 +31,7 @@ def test_process_flight_data_update_flight():
     ]
 
     flight_processor = FlightDataProcessor()
-    flight_processor.process_flight_data(flight_data)
+    flight_processor.process_flight_data(convert_to_flight_data_model(flight_data))
     assert flight_processor.flight_list.head.flight_id == "B15"
     assert flight_processor.flight_dict["A12"].success == "success"
 
@@ -44,8 +48,8 @@ def test_process_flight_data_concurrent_update():
         {"flight ID": "B18", "Arrival": "10:30", "Departure": "18:00", "success": ""},
     ]
     flight_processor = FlightDataProcessor()
-    flight_processor.process_flight_data(flight_data)
-    flight_processor.process_flight_data(flight_data_2)
+    flight_processor.process_flight_data(convert_to_flight_data_model(flight_data))
+    flight_processor.process_flight_data(convert_to_flight_data_model(flight_data_2))
     assert flight_processor.success_count == 6
 
 
@@ -57,7 +61,7 @@ def test_process_flight_data_fail():
     ]
 
     flight_processor = FlightDataProcessor()
-    flight_processor.process_flight_data(flight_data)
+    flight_processor.process_flight_data(convert_to_flight_data_model(flight_data))
     assert flight_processor.flight_dict["A12"].success == "fail"
     assert flight_processor.flight_dict["A14"].success == "success"
     assert flight_processor.flight_dict["B15"].success == "fail"
@@ -92,7 +96,7 @@ def test_process_flight_data_fail_over_20():
     ]
 
     flight_processor = FlightDataProcessor()
-    flight_processor.process_flight_data(flight_data)
+    flight_processor.process_flight_data(convert_to_flight_data_model(flight_data))
     flights = flight_processor.flight_list.to_list()
     assert len([x for x in flights if x["success"] == "fail"]) == 7
     assert len([x for x in flights if x["success"] == "success"]) == 15
@@ -106,7 +110,7 @@ def test_two_instances():
     ]
     flight_processor = FlightDataProcessor()
     flight_processor_2 = FlightDataProcessor()
-    flight_processor.process_flight_data(flight_data)
+    flight_processor.process_flight_data(convert_to_flight_data_model(flight_data))
     assert flight_processor.flight_list.head.flight_id == "A12"
     assert flight_processor_2.flight_list.head.flight_id == "A12"
     assert flight_processor.flight_dict["A12"].success == "success"
