@@ -1,7 +1,7 @@
 import json
 from unittest import mock
 from fastapi.testclient import TestClient
-from app.main import app
+from main import app
 from app.core.flight_processing import FlightNode
 
 client = TestClient(app)
@@ -16,10 +16,15 @@ def test_get_flight():
         flight = response.json()
         assert flight['flight ID'] == 'A12'
 
+def test_flight_not_found():
+    response = client.get("/api/v1/flight/A1")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Flight not found"}
+
 
 def test_update_flights():
-    new_flight_data = [{'flight ID': 'X123', 'Arrival': '15:00', 'Departure': '18:30', 'success': ''}]
+    new_flight_data = [{"flight ID": "X123", "Arrival": "15:00", "Departure": "18:30", "success": ""}]
     headers={"content-type": "application/json"}
-    response = client.post("/api/v1/update_flights/", json=new_flight_data, headers=headers)
+    response = client.post("/api/v1/update_flights/", json=json.dumps(new_flight_data), headers=headers)
     assert response.status_code == 200
     assert response.json() == {"message": "Flights updated successfully"}

@@ -1,15 +1,26 @@
 # app/models/flight.py
 
-from pydantic import BaseModel, field_validator, ConfigDict, ValidationInfo
+from typing import Optional
+from pydantic import BaseModel, Field, field_validator, ConfigDict, ValidationInfo
 from datetime import datetime
 
 class FlightData(BaseModel):
-    flight_ID: str
+    flight_ID: str = Field(alias="flight ID")
     Arrival: str
     Departure: str
-    success: str
+    success: Optional[str] = None
 
-    model_config = ConfigDict(populate_by_name=True, fields={'flight_ID': {'alias': 'flight ID'}})
+    model_config = ConfigDict(
+        populate_by_name=True, 
+        json_schema_extra={
+            "properties": {
+                "flight ID": {"title": "Flight ID", "type": "string"},
+                "Arrival": {"title": "Arrival", "type": "string"},
+                "Departure": {"title": "Departure", "type": "string"},
+                "success": {"title": "Success", "type": "string"}
+            },
+        },
+        )
 
     @field_validator('flight_ID')
     def validate_flight_id(cls, value):

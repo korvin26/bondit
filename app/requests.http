@@ -1,0 +1,5 @@
+# tests
+
+POST http://localhost:8000/api/v1/update_flights/
+Content-Type: application/json
+[{"flight ID": "A72", "Arrival": "09:40", "Departure": "13:00", "success": ""}]

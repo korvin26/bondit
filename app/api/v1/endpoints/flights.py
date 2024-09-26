@@ -11,6 +11,7 @@ logging.debug("App started")
 
 @router.get("/flight/{flight_id}")
 async def get_flight(flight_id: str):
+    logging.debug(f"Getting flight {flight_id}")
     flight = flights_processor.get_fligth(flight_id)
     if flight:
         return {
@@ -24,5 +25,6 @@ async def get_flight(flight_id: str):
 
 @router.post("/update_flights/")
 async def update_flights(new_flights: List[FlightData]):
+    logging.debug("Updating flights")
     flights_processor.process_flight_data(new_flights)
     return {"message": "Flights updated successfully"}
